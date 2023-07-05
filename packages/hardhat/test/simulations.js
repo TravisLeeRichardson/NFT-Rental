@@ -18,7 +18,7 @@ const transactionParameters = {
     from: "0x0000000000000000000000000000000000000000", // the sender address
     to: "0x393007bc739d48038adef76381c9b3691105073d", // the contract address
     //input: StakerAbi.encodeFunctionData('stake', []),
-    input: "0x1300a6d1",
+    input: "0x1300a6d1", // the encoded data for getting contract deadline
     value: "0",
     gas: 20000000,
     gas_price: '0',
