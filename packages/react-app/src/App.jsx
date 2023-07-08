@@ -1,15 +1,15 @@
-import WalletConnectProvider from "@walletconnect/web3-provider";
+import WalletConnectProvider from "@walletconnect/web3-provider"
 //import Torus from "@toruslabs/torus-embed"
-import WalletLink from "walletlink";
-import { Alert, Button, Col, Menu, Row, List } from "antd";
-import "antd/dist/antd.css";
-import React, { useCallback, useEffect, useState } from "react";
-import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
-import Web3Modal from "web3modal";
-import "./App.css";
-import { Account, Address, Balance, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
-import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
-import { Transactor } from "./helpers";
+import WalletLink from "walletlink"
+import { Alert, Button, Col, Menu, Row, List, Modal } from "antd"
+import "antd/dist/antd.css"
+import React, { useCallback, useEffect, useState } from "react"
+import { BrowserRouter, Link, Route, Switch } from "react-router-dom"
+import Web3Modal from "web3modal"
+import "./App.css"
+import { Account, Address, Balance, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components"
+import { INFURA_ID, NETWORK, NETWORKS } from "./constants"
+import { Transactor } from "./helpers"
 import {
   useBalance,
   useContractLoader,
@@ -17,19 +17,24 @@ import {
   useGasPrice,
   useOnBlock,
   useUserProviderAndSigner,
-} from "eth-hooks";
-import { useEventListener } from "eth-hooks/events/useEventListener";
-import { useExchangeEthPrice } from "eth-hooks/dapps/dex";
+} from "eth-hooks"
+import { useEventListener } from "eth-hooks/events/useEventListener"
+import { useExchangeEthPrice } from "eth-hooks/dapps/dex"
 // import Hints from "./Hints";
-import { ExampleUI, Hints, Subgraph } from "./views";
+import { ExampleUI, Hints, Subgraph } from "./views"
 
-import { useContractConfig } from "./hooks";
-import Portis from "@portis/web3";
-import Fortmatic from "fortmatic";
-import Authereum from "authereum";
-import humanizeDuration from "humanize-duration";
+import { useContractConfig } from "./hooks"
+import Portis from "@portis/web3"
+import Fortmatic from "fortmatic"
+import Authereum from "authereum"
+import humanizeDuration from "humanize-duration"
+const { ethers } = require("ethers")
 
-const { ethers } = require("ethers");
+import { Tenderly, Network, Web3Address } from "@tenderly/sdk"
+import { Interface } from "ethers/lib/utils"
+import StakerJson from "../src/contracts/staker.json"
+const StakerAbi = new Interface(StakerJson.abi)
+
 /*
     Welcome to 🏗 scaffold-eth !
 
@@ -50,14 +55,14 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.goerli // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
-const DEBUG = true;
-const NETWORKCHECK = true;
+const DEBUG = true
+const NETWORKCHECK = true
 
 // 🛰 providers
-if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
+if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum")
 // const mainnetProvider = getDefaultProvider("mainnet", { infura: INFURA_ID, etherscan: ETHERSCAN_KEY, quorum: 1 });
 // const mainnetProvider = new InfuraProvider("mainnet",INFURA_ID);
 //
@@ -65,34 +70,34 @@ if (DEBUG) console.log("📡 Connecting to Mainnet Ethereum");
 // Using StaticJsonRpcProvider as the chainId won't change see https://github.com/ethers-io/ethers.js/issues/901
 const scaffoldEthProvider = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://rpc.scaffoldeth.io:48544")
-  : null;
+  : null
 const poktMainnetProvider = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider(
       "https://eth-mainnet.gateway.pokt.network/v1/lb/611156b4a585a20035148406",
     )
-  : null;
+  : null
 const mainnetInfura = navigator.onLine
   ? new ethers.providers.StaticJsonRpcProvider("https://mainnet.infura.io/v3/" + INFURA_ID)
-  : null;
+  : null
 // ( ⚠️ Getting "failed to meet quorum" errors? Check your INFURA_ID
 
 // 🏠 Your local provider is usually pointed at your local blockchain
-const localProviderUrl = targetNetwork.rpcUrl;
+const localProviderUrl = targetNetwork.rpcUrl
 // as you deploy to other networks you can set REACT_APP_PROVIDER=https://dai.poa.network in packages/react-app/.env
-const localProviderUrlFromEnv = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : localProviderUrl;
-if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv);
-const localProvider = new ethers.providers.StaticJsonRpcProvider(localProviderUrlFromEnv);
+const localProviderUrlFromEnv = process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : localProviderUrl
+if (DEBUG) console.log("🏠 Connecting to provider:", localProviderUrlFromEnv)
+const localProvider = new ethers.providers.StaticJsonRpcProvider(localProviderUrlFromEnv)
 
 // 🔭 block explorer URL
-const blockExplorer = targetNetwork.blockExplorer;
+const blockExplorer = targetNetwork.blockExplorer
 
 // Coinbase walletLink init
 const walletLink = new WalletLink({
   appName: "coinbase",
-});
+})
 
 // WalletLink provider
-const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1);
+const walletLinkProvider = walletLink.makeWeb3Provider(`https://mainnet.infura.io/v3/${INFURA_ID}`, 1)
 
 // Portis ID: 6255fb2b-58c8-433b-a2c9-62098c05ddc9
 /*
@@ -153,15 +158,15 @@ const web3Modal = new Web3Modal({
       },
       package: walletLinkProvider,
       connector: async (provider, _options) => {
-        await provider.enable();
-        return provider;
+        await provider.enable()
+        return provider
       },
     },
     authereum: {
       package: Authereum, // required
     },
   },
-});
+})
 
 function App(props) {
   const mainnetProvider =
@@ -169,123 +174,123 @@ function App(props) {
       ? poktMainnetProvider
       : scaffoldEthProvider && scaffoldEthProvider._network
       ? scaffoldEthProvider
-      : mainnetInfura;
+      : mainnetInfura
 
-  const [injectedProvider, setInjectedProvider] = useState();
-  const [address, setAddress] = useState();
+  const [injectedProvider, setInjectedProvider] = useState()
+  const [address, setAddress] = useState()
 
   const logoutOfWeb3Modal = async () => {
-    await web3Modal.clearCachedProvider();
+    await web3Modal.clearCachedProvider()
     if (injectedProvider && injectedProvider.provider && typeof injectedProvider.provider.disconnect == "function") {
-      await injectedProvider.provider.disconnect();
+      await injectedProvider.provider.disconnect()
     }
     setTimeout(() => {
-      window.location.reload();
-    }, 1);
-  };
+      window.location.reload()
+    }, 1)
+  }
 
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
-  const price = useExchangeEthPrice(targetNetwork, mainnetProvider);
+  const price = useExchangeEthPrice(targetNetwork, mainnetProvider)
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
-  const gasPrice = useGasPrice(targetNetwork, "fast");
+  const gasPrice = useGasPrice(targetNetwork, "fast")
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
-  const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider);
-  const userSigner = userProviderAndSigner.signer;
+  const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider)
+  const userSigner = userProviderAndSigner.signer
 
   useEffect(() => {
     async function getAddress() {
       if (userSigner) {
-        const newAddress = await userSigner.getAddress();
-        setAddress(newAddress);
+        const newAddress = await userSigner.getAddress()
+        setAddress(newAddress)
       }
     }
-    getAddress();
-  }, [userSigner]);
+    getAddress()
+  }, [userSigner])
 
   // You can warn the user if you would like them to be on a specific network
-  const localChainId = localProvider && localProvider._network && localProvider._network.chainId;
+  const localChainId = localProvider && localProvider._network && localProvider._network.chainId
   const selectedChainId =
-    userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId;
+    userSigner && userSigner.provider && userSigner.provider._network && userSigner.provider._network.chainId
 
   // For more hooks, check out 🔗eth-hooks at: https://www.npmjs.com/package/eth-hooks
 
   // The transactor wraps transactions and provides notificiations
-  const tx = Transactor(userSigner, gasPrice);
+  const tx = Transactor(userSigner, gasPrice)
 
   // Faucet Tx can be used to send funds from the faucet
-  const faucetTx = Transactor(localProvider, gasPrice);
+  const faucetTx = Transactor(localProvider, gasPrice)
 
   // 🏗 scaffold-eth is full of handy hooks like this one to get your balance:
-  const yourLocalBalance = useBalance(localProvider, address);
+  const yourLocalBalance = useBalance(localProvider, address)
 
   // Just plug in different 🛰 providers to get your balance on different chains:
-  const yourMainnetBalance = useBalance(mainnetProvider, address);
+  const yourMainnetBalance = useBalance(mainnetProvider, address)
 
-  const contractConfig = useContractConfig();
+  const contractConfig = useContractConfig()
 
   // Load in your local 📝 contract and read a value from it:
-  const readContracts = useContractLoader(localProvider, contractConfig);
+  const readContracts = useContractLoader(localProvider, contractConfig)
 
   // If you want to make 🔐 write transactions to your contracts, use the userSigner:
-  const writeContracts = useContractLoader(userSigner, contractConfig, localChainId);
+  const writeContracts = useContractLoader(userSigner, contractConfig, localChainId)
 
   // EXTERNAL CONTRACT EXAMPLE:
   //
   // If you want to bring in the mainnet DAI contract it would look like:
-  const mainnetContracts = useContractLoader(mainnetProvider, contractConfig);
+  const mainnetContracts = useContractLoader(mainnetProvider, contractConfig)
 
   // If you want to call a function on a new block
   useOnBlock(mainnetProvider, () => {
-    console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`);
-  });
+    console.log(`⛓ A new mainnet block is here: ${mainnetProvider._lastBlockNumber}`)
+  })
 
   // Then read your DAI balance like:
   const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
     "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
+  ])
 
   //keep track of contract balance to know how much has been staked total:
   const stakerContractBalance = useBalance(
     localProvider,
     readContracts && readContracts.Staker ? readContracts.Staker.address : null,
-  );
-  if (DEBUG) console.log("💵 stakerContractBalance", stakerContractBalance);
+  )
+  if (DEBUG) console.log("💵 stakerContractBalance", stakerContractBalance)
 
   // ** keep track of total 'threshold' needed of ETH
-  const threshold = useContractReader(readContracts, "Staker", "threshold");
-  console.log("💵 threshold:", threshold);
+  const threshold = useContractReader(readContracts, "Staker", "threshold")
+  console.log("💵 threshold:", threshold)
 
   // ** keep track of a variable from the contract in the local React state:
-  const balanceStaked = useContractReader(readContracts, "Staker", "balances", [address]);
-  console.log("💸 balanceStaked:", balanceStaked);
+  const balanceStaked = useContractReader(readContracts, "Staker", "balances", [address])
+  console.log("💸 balanceStaked:", balanceStaked)
 
   // ** 📟 Listen for broadcast events
-  const stakeEvents = useEventListener(readContracts, "Staker", "Stake", localProvider, 1);
-  console.log("📟 stake events:", stakeEvents);
+  const stakeEvents = useEventListener(readContracts, "Staker", "Stake", localProvider, 1)
+  console.log("📟 stake events:", stakeEvents)
 
   // ** keep track of a variable from the contract in the local React state:
-  const timeLeft = useContractReader(readContracts, "Staker", "timeLeft");
-  console.log("⏳ timeLeft:", timeLeft);
+  const timeLeft = useContractReader(readContracts, "Staker", "timeLeft")
+  console.log("⏳ timeLeft:", timeLeft)
 
   // ** Listen for when the contract has been 'completed'
-  const complete = useContractReader(readContracts, "ExampleExternalContract", "completed");
-  console.log("✅ complete:", complete);
+  const complete = useContractReader(readContracts, "ExampleExternalContract", "completed")
+  console.log("✅ complete:", complete)
 
   const exampleExternalContractBalance = useBalance(
     localProvider,
     readContracts && readContracts.ExampleExternalContract ? readContracts.ExampleExternalContract.address : null,
-  );
-  if (DEBUG) console.log("💵 exampleExternalContractBalance", exampleExternalContractBalance);
+  )
+  if (DEBUG) console.log("💵 exampleExternalContractBalance", exampleExternalContractBalance)
 
-  let completeDisplay = "";
+  let completeDisplay = ""
   if (complete) {
     completeDisplay = (
       <div style={{ padding: 64, backgroundColor: "#eeffef", fontWeight: "bolder", color: "rgba(0, 0, 0, 0.85)" }}>
         🚀 🎖 👩‍🚀 -- Staking App triggered `ExampleExternalContract` -- 🎉 🍾 🎊
         <Balance balance={exampleExternalContractBalance} fontSize={64} /> ETH staked!
       </div>
-    );
+    )
   }
 
   /*
@@ -308,17 +313,17 @@ function App(props) {
       writeContracts &&
       mainnetContracts
     ) {
-      console.log("_____________________________________ 🏗 scaffold-eth _____________________________________");
-      console.log("🌎 mainnetProvider", mainnetProvider);
-      console.log("🏠 localChainId", localChainId);
-      console.log("👩‍💼 selected address:", address);
-      console.log("🕵🏻‍♂️ selectedChainId:", selectedChainId);
-      console.log("💵 yourLocalBalance", yourLocalBalance ? ethers.utils.formatEther(yourLocalBalance) : "...");
-      console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...");
-      console.log("📝 readContracts", readContracts);
-      console.log("🌍 DAI contract on mainnet:", mainnetContracts);
-      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
-      console.log("🔐 writeContracts", writeContracts);
+      console.log("_____________________________________ 🏗 scaffold-eth _____________________________________")
+      console.log("🌎 mainnetProvider", mainnetProvider)
+      console.log("🏠 localChainId", localChainId)
+      console.log("👩‍💼 selected address:", address)
+      console.log("🕵🏻‍♂️ selectedChainId:", selectedChainId)
+      console.log("💵 yourLocalBalance", yourLocalBalance ? ethers.utils.formatEther(yourLocalBalance) : "...")
+      console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...")
+      console.log("📝 readContracts", readContracts)
+      console.log("🌍 DAI contract on mainnet:", mainnetContracts)
+      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance)
+      console.log("🔐 writeContracts", writeContracts)
     }
   }, [
     mainnetProvider,
@@ -329,17 +334,194 @@ function App(props) {
     readContracts,
     writeContracts,
     mainnetContracts,
-  ]);
+  ])
 
-  let networkDisplay = "";
+  // Tenderly constants
+  const wallet = "0x37049fd82225d9c9940a33bad4d22223f2a86a4c"
+  const anotherWallet = "0x0AA5141FB867B616b9584492698330D3DbCE1180"
+  const contract = "0x4bD798dB5c751Ce8d38a90EfcB4F819252889b06"
+
+  // Tenderly Config
+  const tenderly = new Tenderly({
+    accountName: "tlrichar",
+    projectName: "project",
+    accessKey: "XZ9Hmq7qxUxMO-uiFzBXR2WY7ycAUpnG",
+    network: Network.GOERLI, // Replace with the appropriate network
+  })
+
+  const stakeParameters = {
+    from: wallet, // the sender address
+    to: contract, // the contract address
+    input: StakerAbi.encodeFunctionData("stake", []), //params would go here
+    value: "0.00000000",
+    gas: 20000000,
+    gas_price: "0",
+  }
+  const executeParameters = {
+    from: wallet, // the sender address
+    to: contract, // the contract address
+    input: StakerAbi.encodeFunctionData("execute", []), //params would go here
+    value: "0",
+    gas: 20000000,
+    gas_price: "0",
+  }
+  const withdrawParameters = {
+    from: wallet, // the sender address
+    to: contract, // the contract address
+    input: StakerAbi.encodeFunctionData("withdraw", []), //params would go here
+    value: "0",
+    gas: 20000000,
+    gas_price: "0",
+  }
+  const timeLeftParameters = {
+    from: wallet, // the sender address
+    to: contract, // the contract address
+    input: StakerAbi.encodeFunctionData("timeLeft", []), //params would go here
+    value: "0",
+    gas: 20000000,
+    gas_price: "0",
+  }
+
+  const stakeSimulationDetails = {
+    transaction: stakeParameters,
+    blockNumber: 9294858,
+    override: {
+      [contract]: {
+        
+      },
+    },
+  }
+  const withdrawSimulationDetails = {
+    transaction: withdrawParameters,
+    blockNumber: 9294858,
+    override: {
+      [contract]: {
+      },
+    },
+  }
+  const executeSimulationDetails = {
+    transaction: executeParameters,
+    blockNumber: 9294858,
+    override: {
+      [contract]: {
+        state: {
+          [`_balances[${wallet}]`]: "1234567891",
+          ["openForWithdraw"]: "true",
+          ["deadline"]: "0x9999999999999999999999999999999999999999999999999999999999999999",
+          ["startStake"]: "0x0",
+          ["threshold"]: "0x0",
+        },
+      },
+    },
+  }
+
+  const timeLeftSimulationDetails = {
+    transaction: timeLeftParameters,
+    blockNumber: 9294858,
+    override: {
+      [contract]: {
+        state: {  
+        },
+      },
+    },
+  }
+
+  const allSimulationDetails = {
+    transactions: [
+       {
+        from: wallet, // the sender address
+        to: contract, // the contract address
+        input: StakerAbi.encodeFunctionData('stake', []),
+        value: "0",
+        gas: 20000000,
+        gas_price: '0',
+      },
+      {
+        from: wallet, // the sender address
+        to: contract, // the contract address
+        input: StakerAbi.encodeFunctionData('withdraw', []),
+        value: "0",
+        gas: 20000000,
+        gas_price: '0',
+      },
+      {
+        from: wallet, // the sender address
+        to: contract, // the contract address
+        input: StakerAbi.encodeFunctionData('execute', []),
+        value: "0",
+        gas: 20000000,
+        gas_price: '0',
+      }, 
+      {
+        from: wallet, // the sender address
+        to: contract, // the contract address
+        input: StakerAbi.encodeFunctionData('timeLeft', []),
+        value: "0",
+        gas: 20000000,
+        gas_price: '0',
+      }],
+    blockNumber: 9294858,
+    override: {
+      [contract]: {
+        state: {
+        },
+      },
+    },
+  }
+  // Modal popup for simulation results
+  const [stakeSimulationResult, setStakeSimulationResult] = useState(null)
+  const [withdrawSimulationResult, setWithdrawSimulationResult] = useState(null)
+  const [executeSimulationResult, setExecuteSimulationResult] = useState(null)
+  const [timeLeftSimulationResult, setTimeLeftSimulationResult] = useState(null)
+  const [allSimulationResult, setAllSimulationResult] = useState(null)
+
+  const [isStakeModalVisible, setIsStakeModalVisible] = useState(false)
+  const [isWithdrawModalVisible, setIsWithdrawModalVisible] = useState(false)
+  const [isExecuteModalVisible, setIsExecuteModalVisible] = useState(false)
+  const [isTimeLeftModalVisible, setIsTimeLeftModalVisible] = useState(false)
+  const [isAllModalVisible, setIsAllModalVisible] = useState(false)
+
+  const simulateStake = async () => {
+    
+    const simulationResult = await tenderly.simulator.simulateTransaction(stakeSimulationDetails)
+    console.log(simulationResult)
+    setStakeSimulationResult(simulationResult)
+    setIsStakeModalVisible(true)
+  }
+  const simulateWithdraw = async () => {
+    
+    const simulationResult = await tenderly.simulator.simulateTransaction(withdrawSimulationDetails)
+    setWithdrawSimulationResult(simulationResult)
+    setIsWithdrawModalVisible(true)
+  }
+  const simulateExecute = async () => {
+    
+    const simulationResult = await tenderly.simulator.simulateTransaction(executeSimulationDetails)
+    setExecuteSimulationResult(simulationResult)
+    setIsExecuteModalVisible(true)
+  }
+  const simulateTimeLeft = async () => {
+    
+    const simulationResult = await tenderly.simulator.simulateTransaction(timeLeftSimulationDetails)
+    setTimeLeftSimulationResult(simulationResult)
+    setIsTimeLeftModalVisible(true)
+  }
+  const simulateAll = async () => {
+    
+    const simulationResult = await tenderly.simulator.simulateBundle(allSimulationDetails)
+    setAllSimulationResult(simulationResult)
+    setIsAllModalVisible(true)
+  }
+
+  let networkDisplay = ""
   if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
-    const networkSelected = NETWORK(selectedChainId);
-    const networkLocal = NETWORK(localChainId);
+    const networkSelected = NETWORK(selectedChainId)
+    const networkLocal = NETWORK(localChainId)
     if (selectedChainId === 1337 && localChainId === 31337) {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
           <Alert
-            message="⚠️ Wrong Network ID"
+            message='⚠️ Wrong Network ID'
             description={
               <div>
                 You have <b>chain id 1337</b> for localhost and you need to change it to <b>31337</b> to work with
@@ -347,22 +529,22 @@ function App(props) {
                 <div>(MetaMask -&gt; Settings -&gt; Networks -&gt; Chain ID -&gt; 31337)</div>
               </div>
             }
-            type="error"
+            type='error'
             closable={false}
           />
         </div>
-      );
+      )
     } else {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 60, padding: 16 }}>
           <Alert
-            message="⚠️ Wrong Network"
+            message='⚠️ Wrong Network'
             description={
               <div>
                 You have <b>{networkSelected && networkSelected.name}</b> selected and you need to be on{" "}
                 <Button
                   onClick={async () => {
-                    const ethereum = window.ethereum;
+                    const ethereum = window.ethereum
                     const data = [
                       {
                         chainId: "0x" + targetNetwork.chainId.toString(16),
@@ -371,30 +553,30 @@ function App(props) {
                         rpcUrls: [targetNetwork.rpcUrl],
                         blockExplorerUrls: [targetNetwork.blockExplorer],
                       },
-                    ];
-                    console.log("data", data);
+                    ]
+                    console.log("data", data)
 
-                    let switchTx;
+                    let switchTx
                     // https://docs.metamask.io/guide/rpc-api.html#other-rpc-methods
                     try {
                       switchTx = await ethereum.request({
                         method: "wallet_switchEthereumChain",
                         params: [{ chainId: data[0].chainId }],
-                      });
+                      })
                     } catch (switchError) {
                       // not checking specific error code, because maybe we're not using MetaMask
                       try {
                         switchTx = await ethereum.request({
                           method: "wallet_addEthereumChain",
                           params: data,
-                        });
+                        })
                       } catch (addError) {
                         // handle "add" error
                       }
                     }
 
                     if (switchTx) {
-                      console.log(switchTx);
+                      console.log(switchTx)
                     }
                   }}
                 >
@@ -402,56 +584,56 @@ function App(props) {
                 </Button>
               </div>
             }
-            type="error"
+            type='error'
             closable={false}
           />
         </div>
-      );
+      )
     }
   } else {
     networkDisplay = (
       <div style={{ zIndex: -1, position: "absolute", right: 154, top: 28, padding: 16, color: targetNetwork.color }}>
         {targetNetwork.name}
       </div>
-    );
+    )
   }
 
   const loadWeb3Modal = useCallback(async () => {
-    const provider = await web3Modal.connect();
-    setInjectedProvider(new ethers.providers.Web3Provider(provider));
+    const provider = await web3Modal.connect()
+    setInjectedProvider(new ethers.providers.Web3Provider(provider))
 
     provider.on("chainChanged", chainId => {
-      console.log(`chain changed to ${chainId}! updating providers`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
-    });
+      console.log(`chain changed to ${chainId}! updating providers`)
+      setInjectedProvider(new ethers.providers.Web3Provider(provider))
+    })
 
     provider.on("accountsChanged", () => {
-      console.log(`account changed!`);
-      setInjectedProvider(new ethers.providers.Web3Provider(provider));
-    });
+      console.log(`account changed!`)
+      setInjectedProvider(new ethers.providers.Web3Provider(provider))
+    })
 
     // Subscribe to session disconnection
     provider.on("disconnect", (code, reason) => {
-      console.log(code, reason);
-      logoutOfWeb3Modal();
-    });
-  }, [setInjectedProvider]);
+      console.log(code, reason)
+      logoutOfWeb3Modal()
+    })
+  }, [setInjectedProvider])
 
   useEffect(() => {
     if (web3Modal.cachedProvider) {
-      loadWeb3Modal();
+      loadWeb3Modal()
     }
-  }, [loadWeb3Modal]);
+  }, [loadWeb3Modal])
 
-  const [route, setRoute] = useState();
+  const [route, setRoute] = useState()
   useEffect(() => {
-    setRoute(window.location.pathname);
-  }, [setRoute]);
+    setRoute(window.location.pathname)
+  }, [setRoute])
 
-  let faucetHint = "";
-  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
+  let faucetHint = ""
+  const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1
 
-  const [faucetClicked, setFaucetClicked] = useState(false);
+  const [faucetClicked, setFaucetClicked] = useState(false)
   if (
     !faucetClicked &&
     localProvider &&
@@ -463,44 +645,44 @@ function App(props) {
     faucetHint = (
       <div style={{ padding: 16 }}>
         <Button
-          type="primary"
+          type='primary'
           onClick={() => {
             faucetTx({
               to: address,
               value: ethers.utils.parseEther("0.01"),
-            });
-            setFaucetClicked(true);
+            })
+            setFaucetClicked(true)
           }}
         >
           💰 Grab funds from the faucet ⛽️
         </Button>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="App">
+    <div className='App'>
       {/* ✏️ Edit the header and change the title to your project name */}
       <Header />
       {networkDisplay}
       <BrowserRouter>
-        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode="horizontal">
-          <Menu.Item key="/">
+        <Menu style={{ textAlign: "center" }} selectedKeys={[route]} mode='horizontal'>
+          <Menu.Item key='/'>
             <Link
               onClick={() => {
-                setRoute("/");
+                setRoute("/")
               }}
-              to="/"
+              to='/'
             >
               Staker UI
             </Link>
           </Menu.Item>
-          <Menu.Item key="/contracts">
+          <Menu.Item key='/contracts'>
             <Link
               onClick={() => {
-                setRoute("/contracts");
+                setRoute("/contracts")
               }}
-              to="/contracts"
+              to='/contracts'
             >
               Debug Contracts
             </Link>
@@ -508,7 +690,7 @@ function App(props) {
         </Menu>
 
         <Switch>
-          <Route exact path="/">
+          <Route exact path='/'>
             {completeDisplay}
 
             <div style={{ padding: 8, marginTop: 32 }}>
@@ -530,40 +712,156 @@ function App(props) {
               <div>You staked:</div>
               <Balance balance={balanceStaked} fontSize={64} />
             </div>
-
+            <div className='button-container'>
             <div style={{ padding: 8 }}>
               <Button
                 type={"default"}
                 onClick={() => {
-                  tx(writeContracts.Staker.execute());
+                  tx(writeContracts.Staker.execute())
                 }}
               >
                 📡 Execute!
               </Button>
             </div>
-
             <div style={{ padding: 8 }}>
               <Button
                 type={"default"}
                 onClick={() => {
-                  tx(writeContracts.Staker.withdraw());
+                  simulateExecute() 
+                  
+                }}
+              >
+                ✅ Simulate Execute!
+              </Button>
+            </div>
+</div>
+            <div className='button-container'>
+            <div style={{ padding: 8 }}>
+              <Button
+                type={"default"}
+                onClick={() => {
+                  tx(writeContracts.Staker.withdraw())
                 }}
               >
                 🏧 Withdraw
               </Button>
             </div>
-
             <div style={{ padding: 8 }}>
               <Button
-                type={balanceStaked ? "success" : "primary"}
+                type={"default"}
                 onClick={() => {
-                  tx(writeContracts.Staker.stake({ value: ethers.utils.parseEther("0.5") }));
+                  simulateWithdraw();
                 }}
               >
-                🥩 Stake 0.5 ether!
+                ✅ Simulate Withdraw
               </Button>
             </div>
+            </div>
 
+            <div className='button-container'>
+              <div style={{ padding: 8 }}>
+                <Button
+                  type={balanceStaked ? "success" : "primary"}
+                  onClick={() => {
+                    tx(writeContracts.Staker.stake({ value: ethers.utils.parseEther("0.0000001") }))
+                  }}
+                >
+                  🥩 Stake 0.0000001 ether!
+                </Button>
+              </div>
+              <div style={{ padding: 8 }}>
+                <Button
+                  type={"default"}
+                  onClick={() => {
+                    simulateStake()
+                  }}
+                >
+                  ✅ Simulate Stake!
+                </Button>
+              </div>
+            </div>
+            <div className='button-container'>
+              <div style={{ padding: 8 }}>
+                <Button                
+                  onClick={() => {
+                    simulateTimeLeft()
+                  }}
+                >
+                  ✅ Simulate Time Left!
+                </Button>
+              </div>
+              <div style={{ padding: 8 }}>
+                <Button                
+                  onClick={() => {
+                    simulateAll()
+                  }}
+                >
+                  ✅ Simulate All!
+                </Button>
+              </div>
+              
+            </div>
+            
+            <Modal
+              title='Staking Simulation Results'
+              visible={isStakeModalVisible}
+              onCancel={() => setIsStakeModalVisible(false)}
+              footer={[
+                <Button key='close' onClick={() => setIsStakeModalVisible(false)}>
+                  Close
+                </Button>,
+              ]}
+            >
+              <pre>{JSON.stringify(stakeSimulationResult, null, 2)}</pre>
+            </Modal>
+            <Modal
+              title='Withdraw Simulation Results'
+              visible={isWithdrawModalVisible}
+              onCancel={() => setIsWithdrawModalVisible(false)}
+              footer={[
+                <Button key='close' onClick={() => setIsWithdrawModalVisible(false)}>
+                  Close
+                </Button>,
+              ]}
+            >
+              <pre>{JSON.stringify(withdrawSimulationResult, null, 2)}</pre>
+            </Modal>
+            <Modal
+              title='Execute Simulation Results'
+              visible={isExecuteModalVisible}
+              onCancel={() => setIsExecuteModalVisible(false)}
+              footer={[
+                <Button key='close' onClick={() => setIsExecuteModalVisible(false)}>
+                  Close
+                </Button>,
+              ]}
+            >
+              <pre>{JSON.stringify(executeSimulationResult, null, 2)}</pre>
+            </Modal>
+            <Modal
+              title='Time Left Simulation Results'
+              visible={isTimeLeftModalVisible}
+              onCancel={() => setIsTimeLeftModalVisible(false)}
+              footer={[
+                <Button key='close' onClick={() => setIsTimeLeftModalVisible(false)}>
+                  Close
+                </Button>,
+              ]}
+            >
+              <pre>{JSON.stringify(timeLeftSimulationResult, null, 2)}</pre>
+            </Modal>
+            <Modal
+              title='Bundled Simulations Results'
+              visible={isAllModalVisible}
+              onCancel={() => setIsAllModalVisible(false)}
+              footer={[
+                <Button key='close' onClick={() => setIsAllModalVisible(false)}>
+                  Close
+                </Button>,
+              ]}
+            >
+              <pre>{JSON.stringify(allSimulationResult, null, 2)}</pre>
+            </Modal>
             {/*
                 🎛 this scaffolding is full of commonly used components
                 this <Contract/> component will automatically parse your ABI
@@ -580,7 +878,7 @@ function App(props) {
                       <Address value={item.args[0]} ensProvider={mainnetProvider} fontSize={16} /> =>
                       <Balance balance={item.args[1]} />
                     </List.Item>
-                  );
+                  )
                 }}
               />
             </div>
@@ -596,9 +894,9 @@ function App(props) {
             />
             */}
           </Route>
-          <Route path="/contracts">
+          <Route path='/contracts'>
             <Contract
-              name="Staker"
+              name='Staker'
               signer={userSigner}
               provider={localProvider}
               address={address}
@@ -606,7 +904,7 @@ function App(props) {
               contractConfig={contractConfig}
             />
             <Contract
-              name="ExampleExternalContract"
+              name='ExampleExternalContract'
               signer={userSigner}
               provider={localProvider}
               address={address}
@@ -641,14 +939,14 @@ function App(props) {
       </div>
 
       <div style={{ marginTop: 32, opacity: 0.5 }}>
-        <a target="_blank" style={{ padding: 32, color: "#000" }} href="https://github.com/scaffold-eth/scaffold-eth">
+        <a target='_blank' style={{ padding: 32, color: "#000" }} href='https://github.com/scaffold-eth/scaffold-eth'>
           🍴 Fork me!
         </a>
       </div>
 
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
-        <Row align="middle" gutter={[4, 4]}>
+        <Row align='middle' gutter={[4, 4]}>
           <Col span={8}>
             <Ramp price={price} address={address} networks={NETWORKS} />
           </Col>
@@ -659,12 +957,12 @@ function App(props) {
           <Col span={8} style={{ textAlign: "center", opacity: 1 }}>
             <Button
               onClick={() => {
-                window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA");
+                window.open("https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA")
               }}
-              size="large"
-              shape="round"
+              size='large'
+              shape='round'
             >
-              <span style={{ marginRight: 8 }} role="img" aria-label="support">
+              <span style={{ marginRight: 8 }} role='img' aria-label='support'>
                 💬
               </span>
               Support
@@ -672,7 +970,7 @@ function App(props) {
           </Col>
         </Row>
 
-        <Row align="middle" gutter={[4, 4]}>
+        <Row align='middle' gutter={[4, 4]}>
           <Col span={24}>
             {
               /*  if the local provider has a signer, let's show the faucet:  */
@@ -686,7 +984,7 @@ function App(props) {
         </Row>
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

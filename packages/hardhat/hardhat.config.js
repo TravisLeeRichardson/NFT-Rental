@@ -72,7 +72,7 @@ module.exports = {
       },
     },
     mainnet: {
-      url: "https://mainnet.infura.io/v3/ec6a8acd1d354717acec099ad46a0bab", // <---- YOUR INFURA ID! (or it won't work)
+      url: "https://mainnet.infura.io/v3/478d2afbed794005b45b7abe0e3c8601", // <---- YOUR INFURA ID! (or it won't work)
       //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/mainnet", // <---- YOUR MORALIS ID! (not limited to infura)
       gasPrice: mainnetGwei * 1000000000,
       accounts: {
@@ -94,7 +94,7 @@ module.exports = {
       },
     },
     sepolia: {
-      url: "https://sepolia.infura.io/v3/ec6a8acd1d354717acec099ad46a0bab", // <---- YOUR INFURA ID! (or it won't work)
+      url: "https://sepolia.infura.io/v3/478d2afbed794005b45b7abe0e3c8601", // <---- YOUR INFURA ID! (or it won't work)
       //      url: "https://speedy-nodes-nyc.moralis.io/XXXXXXXXXXXXXXXXXXXXXXXXX/eth/sepolia", // <---- YOUR MORALIS ID! (not limited to infura)
       accounts: {
         mnemonic: mnemonic(),
@@ -263,7 +263,7 @@ module.exports = {
   },
   etherscan: {
     // Add your api key here
-    apiKey: "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
+    apiKey: "CJDS89571JXDGQF6VQKD6NWWXRVAWI42J6",
   },
 };
 

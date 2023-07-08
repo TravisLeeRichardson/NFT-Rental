@@ -66,5 +66,7 @@
       "**/hardhat-ts/**"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "@tenderly/sdk": "^0.1.14"
+  }
 }
