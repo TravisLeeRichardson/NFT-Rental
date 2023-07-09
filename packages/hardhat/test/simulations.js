@@ -9,7 +9,7 @@ const { readFileSync } = require ( 'fs');
 
 const wallet = "0x0000000000000000000000000000000000000000"
 const anotherWallet = ""
-const contract = "0x393007bc739d48038adef76381c9b3691105073d"
+const contract = ""
 
 // Tenderly Config
 const tenderly = new Tenderly({
