@@ -8,14 +8,13 @@ const { dotenv } = require('dotenv');
 const { readFileSync } = require ( 'fs');
 
 const wallet = "0x0000000000000000000000000000000000000000"
-const anotherWallet = "0x0AA5141FB867B616b9584492698330D3DbCE1180"
+const anotherWallet = ""
 const contract = "0x393007bc739d48038adef76381c9b3691105073d"
 
 // Tenderly Config
 const tenderly = new Tenderly({
-  accountName: "tlrichar",
-  projectName: "project",
-  accessKey: "XZ9Hmq7qxUxMO-uiFzBXR2WY7ycAUpnG",
+  accountName: ""
+  projectName: ""
   network: Network.GOERLI, // Replace with the appropriate network
 });
 
