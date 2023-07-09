@@ -337,15 +337,15 @@ function App(props) {
   ])
 
   // Tenderly constants
-  const wallet = "0x37049fd82225d9c9940a33bad4d22223f2a86a4c"
-  const anotherWallet = "0x0AA5141FB867B616b9584492698330D3DbCE1180"
-  const contract = "0x4bD798dB5c751Ce8d38a90EfcB4F819252889b06"
+  const wallet = ""
+  const anotherWallet = ""
+  const contract = ""
 
   // Tenderly Config
   const tenderly = new Tenderly({
-    accountName: "tlrichar",
-    projectName: "project",
-    accessKey: "XZ9Hmq7qxUxMO-uiFzBXR2WY7ycAUpnG",
+    accountName: "",
+    projectName: "",
+    accessKey: "",
     network: Network.GOERLI, // Replace with the appropriate network
   })
 
